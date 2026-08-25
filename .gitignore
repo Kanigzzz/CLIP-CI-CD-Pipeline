@@ -1,6 +1,5 @@
 # Bez ukośnika na początku łapie folder w każdym miejscu
 data/
-notebooks/
 
 # Złapie venv i .venv
 venv/
