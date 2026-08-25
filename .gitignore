@@ -1,5 +1,5 @@
 # Bez ukośnika na początku łapie folder w każdym miejscu
-data/
+data/animals
 
 # Złapie venv i .venv
 venv/
