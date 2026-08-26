@@ -1,0 +1,17 @@
+data:
+  images_path: "../data/animals"
+  captions_path: "../data/dataset_captions.json"
+
+model:
+  text_encoder: "distilbert-base-uncased"
+  embedding_dim: 256
+  max_text_length: 32
+
+training:
+  batch_size: 32
+  samples_per_class: 2
+  learning_rate_head: 1e-4
+  learning_rate_backbone: 1e-5
+  weight_decay_backbone: 1e-2
+  weight_decay_head: 1e-4
+  epochs: 20
