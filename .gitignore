@@ -1,5 +1,6 @@
 # Bez ukośnika na początku łapie folder w każdym miejscu
 data/animals
+data/database
 models/
 
 # Złapie venv i .venv
