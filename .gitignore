@@ -1,5 +1,6 @@
 # Bez ukośnika na początku łapie folder w każdym miejscu
 data/animals
+models/
 
 # Złapie venv i .venv
 venv/
@@ -7,4 +8,4 @@ venv/
 env/
 .env/
 
-.DS_Store
+.DS_Store.DS_Store
