@@ -2,6 +2,7 @@
 data/animals
 data/database
 models/
+frontend/
 
 # Złapie venv i .venv
 venv/
