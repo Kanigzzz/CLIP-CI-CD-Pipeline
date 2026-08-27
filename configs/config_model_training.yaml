@@ -15,5 +15,6 @@ training:
   learning_rate_backbone: 0.00005
   weight_decay_backbone: 0.01
   weight_decay_head: 0.0001
-  epochs: 10
+  epochs: 15
   epochs_f2: 5
+  patience: 3
