@@ -1,15 +1,28 @@
 import torch
 import yaml
 from PIL import Image
+from pathlib import Path
 from transformers import BlipProcessor, BlipForConditionalGeneration
 
-with open("../configs/config_image_captioner.yaml", "r", encoding="utf-8") as f:
+
+_CONFIG_PATH = Path(__file__).resolve().parent.parent.parent / \
+    "configs" / "config_image_captioner.yaml"
+with open(_CONFIG_PATH, "r", encoding="utf-8") as f:
     cfg = yaml.safe_load(f)
+
+
+def _get_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
 
 
 class ImageCaptioner:
     def __init__(self):
-        self.device = cfg['data']['device']
+        self.device = _get_device()
+
         self.processor = BlipProcessor.from_pretrained(cfg['data']['model'])
         self.model = BlipForConditionalGeneration.from_pretrained(
             cfg['data']['model'])
