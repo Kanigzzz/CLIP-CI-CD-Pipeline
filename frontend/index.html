@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLIP & BLIP API</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen font-sans">
+
+    <header class="border-b border-gray-800 px-8 py-5 flex items-center gap-3">
+        <div class="w-2 h-2 rounded-full bg-indigo-400"></div>
+        <h1 class="text-lg font-semibold tracking-tight">CLIP & BLIP <span class="text-indigo-400">API</span></h1>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-6 py-12 space-y-8">
+
+        <!-- Caption -->
+        <section class="bg-gray-900 rounded-2xl p-7 border border-gray-800">
+            <h2 class="text-base font-semibold mb-1">Image Caption</h2>
+            <p class="text-gray-400 text-sm mb-6">Upload an image and get an automatic description using BLIP.</p>
+
+            <div id="drop-zone" class="border-2 border-dashed border-gray-700 rounded-xl p-10 text-center cursor-pointer hover:border-indigo-500 transition-colors duration-200">
+                <input type="file" id="file-input" accept="image/*" class="hidden">
+                <p class="text-gray-500 text-sm">Click or drag & drop an image here</p>
+            </div>
+
+            <div id="preview-container" class="hidden mt-5">
+                <img id="preview-img" class="max-h-60 rounded-xl mx-auto object-contain">
+            </div>
+
+            <button id="caption-btn"
+                class="mt-5 w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-medium transition-colors duration-200"
+                disabled>
+                Generate Caption
+            </button>
+
+            <div id="caption-result" class="hidden mt-5 bg-gray-800 rounded-xl px-5 py-4">
+                <p class="text-xs text-gray-400 mb-1 uppercase tracking-wider">Caption</p>
+                <p id="caption-text" class="text-white text-sm leading-relaxed"></p>
+            </div>
+        </section>
+
+        <!-- Search -->
+        <section class="bg-gray-900 rounded-2xl p-7 border border-gray-800">
+            <h2 class="text-base font-semibold mb-1">Image Search</h2>
+            <p class="text-gray-400 text-sm mb-6">Describe what you're looking for and find similar images using CLIP.</p>
+
+            <div class="flex gap-3">
+                <input type="text" id="search-input" placeholder="e.g. a cat on a tree..."
+                    class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors duration-200">
+                <button id="search-btn"
+                    class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 px-6 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200">
+                    Search
+                </button>
+            </div>
+
+            <div id="search-results" class="hidden mt-6 space-y-2">
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-3">Results</p>
+                <div id="results-list" class="space-y-2"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const API = 'http://localhost:8000/api/v1';
+
+        // ── Caption ──────────────────────────────────────────────
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const captionBtn = document.getElementById('caption-btn');
+        const previewContainer = document.getElementById('preview-container');
+        const previewImg = document.getElementById('preview-img');
+        const captionResult = document.getElementById('caption-result');
+        const captionText = document.getElementById('caption-text');
+
+        let selectedFile = null;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-indigo-500');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-indigo-500');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-indigo-500');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files[0]) handleFile(fileInput.files[0]);
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            previewImg.src = URL.createObjectURL(file);
+            previewContainer.classList.remove('hidden');
+            captionBtn.disabled = false;
+            captionResult.classList.add('hidden');
+        }
+
+        captionBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            captionBtn.textContent = 'Generating...';
+            captionBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+
+            try {
+                const res = await fetch(`${API}/caption`, { method: 'POST', body: formData });
+                const data = await res.json();
+                captionText.textContent = data.caption;
+            } catch {
+                captionText.textContent = 'Error: could not connect to API.';
+            } finally {
+                captionResult.classList.remove('hidden');
+                captionBtn.textContent = 'Generate Caption';
+                captionBtn.disabled = false;
+            }
+        });
+
+        // ── Search ───────────────────────────────────────────────
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const searchResults = document.getElementById('search-results');
+        const resultsList = document.getElementById('results-list');
+
+        async function runSearch() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            searchBtn.textContent = 'Searching...';
+            searchBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${API}/search`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, top_k: 3 })
+                });
+                const data = await res.json();
+
+                resultsList.innerHTML = data.results.map((r, i) => {
+                    const imgPath = r.path.replace('../data/animals/', '');
+                    const imgUrl = `http://localhost:8000/animals/${imgPath}`;
+                    return `
+                    <div class="bg-gray-800 rounded-xl overflow-hidden flex items-center gap-4 p-3">
+                        <img src="${imgUrl}" class="w-20 h-20 object-cover rounded-lg shrink-0" alt="result ${i + 1}">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs text-gray-500 font-mono truncate">${r.path}</p>
+                            <p class="text-indigo-400 font-mono text-sm mt-1">score: ${r.score}</p>
+                        </div>
+                        <span class="text-gray-500 text-xs shrink-0">#${i + 1}</span>
+                    </div>`;
+                }).join('');
+            } catch {
+                resultsList.innerHTML = '<p class="text-red-400 text-sm">Error: could not connect to API.</p>';
+            } finally {
+                searchResults.classList.remove('hidden');
+                searchBtn.textContent = 'Search';
+                searchBtn.disabled = false;
+            }
+        }
+
+        searchBtn.addEventListener('click', runSearch);
+        searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') runSearch(); });
+    </script>
+
+</body>
+</html>

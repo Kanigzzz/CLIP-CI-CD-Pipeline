@@ -2,12 +2,13 @@
 data/animals
 data/database
 models/
-frontend/
+
 
 # Złapie venv i .venv
 venv/
 .venv/
 env/
 .env/
+.env
 
 .DS_Store.DS_Store
