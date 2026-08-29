@@ -61,6 +61,3 @@ class CLIPSearcher:
              "score": round(float(score), 4)}
             for idx, score in zip(indices[0], scores[0])
         ]
-
-
-searcher = CLIPSearcher()

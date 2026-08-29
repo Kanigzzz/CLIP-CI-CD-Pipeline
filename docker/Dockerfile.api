@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirement.txt .
-RUN pip install --no-cache-dir -r requirement.txt huggingface_hub
+RUN  pip install uv && uv pip install --no-cache-dir -r --system requirement.txt huggingface_hub
 
 COPY src/ ./src/
 COPY configs ./configs/

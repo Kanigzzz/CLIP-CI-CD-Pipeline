@@ -7,8 +7,6 @@ from src.inference.caption_generate import _captioner
 from src.inference.clip_search import searcher
 
 
-  
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     _ = _captioner
@@ -20,11 +18,11 @@ app.mount("/animals", StaticFiles(directory="data/animals"), name="animals")
 
 
 app.add_middleware(
-      CORSMiddleware,
-      allow_origins=["*"],
-      allow_methods=["*"],
-      allow_headers=["*"],
-  )   
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(caption.router, prefix="/api/v1", tags=['caption'])
 app.include_router(search.router, prefix="/api/v1", tags=['search'])
