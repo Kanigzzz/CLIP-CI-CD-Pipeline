@@ -11,4 +11,13 @@ env/
 .env/
 .env
 
-.DS_Store.DS_Store
+# Pliki systemowe i IDE
+.DS_Store
+**/.DS_Store
+.vscode/
+# Pliki Pythona i cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/

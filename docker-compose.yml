@@ -8,7 +8,7 @@ services:
     environment:
       - HF_TOKEN=${HF_TOKEN}
     volumes:
-      - hf_cache:/root/.cache/huggingface
+      - hf_cache:/app/.cache/huggingface
       - models_data:/app/models
       - animals_data:/app/data
 
@@ -23,6 +23,6 @@ services:
 
 volumes:
   hf_cache:
-  models_data:
+  models_data: 
   animals_data:
   

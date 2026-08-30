@@ -7,16 +7,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirement.txt .
-RUN  pip install uv && uv pip install --no-cache-dir -r --system requirement.txt huggingface_hub
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+RUN useradd -m -u 1000 appuser
+
+COPY requirements.txt .
+RUN  uv pip install --no-cache-dir --system -r requirements.txt huggingface_hub
 
 COPY src/ ./src/
 COPY configs ./configs/
 COPY scripts/ ./scripts/
 COPY entrypoint.sh .
 
-RUN chmod +x entrypoint.sh
+RUN chmod +x entrypoint.sh  && \
+    mkdir -p /app/models /app/data /app/.cache && \
+    chown -R appuser:appuser /app
+    
+ENV HF_HOME=/app/.cache/huggingface
+USER appuser
 
 EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["./entrypoint.sh"]

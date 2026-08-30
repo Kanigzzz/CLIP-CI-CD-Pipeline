@@ -18,7 +18,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="CLIP | BLIP API", version="1.0.0", lifespan=lifespan)
 app.mount("/animals", StaticFiles(directory="data/animals"), name="animals")
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,3 +27,8 @@ app.add_middleware(
 
 app.include_router(caption.router, prefix="/api/v1", tags=['caption'])
 app.include_router(search.router, prefix="/api/v1", tags=['search'])
+
+
+@app.get("/health", tags=['monitoring'])
+def health_check():
+    return {"status": "healthy", "service": "clip-api", "version": "1.0.0"}
