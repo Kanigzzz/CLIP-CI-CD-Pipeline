@@ -3,15 +3,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from src.api.routers import caption, search
-from src.inference.caption_generate import _captioner
-from src.inference.clip_search import searcher
+from src.inference.image_captioner import ImageCaptioner
+from src.inference.clip_search import CLIPSearcher
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    _ = _captioner
-    _ = searcher
+    app.state.searcher = CLIPSearcher()
+    app.state.captioner = ImageCaptioner()
     yield
+    del app.state.searcher
+    del app.state.captioner
 
 app = FastAPI(title="CLIP | BLIP API", version="1.0.0", lifespan=lifespan)
 app.mount("/animals", StaticFiles(directory="data/animals"), name="animals")
