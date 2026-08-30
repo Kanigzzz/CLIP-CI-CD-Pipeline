@@ -12,7 +12,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 RUN useradd -m -u 1000 appuser
 
 COPY requirements.txt .
-RUN  uv pip install --no-cache-dir --system -r requirements.txt huggingface_hub
+RUN  uv pip install --no-cache-dir --system -r requirements.txt
 
 COPY src/ ./src/
 COPY configs ./configs/
@@ -29,5 +29,5 @@ USER appuser
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD python -c "import urllib.requests; urllib.requests.urlopen('http://localhost:8000/health')"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 CMD ["./entrypoint.sh"]
