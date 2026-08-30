@@ -13,5 +13,5 @@ def get_captioner(request: Request) -> ImageCaptioner:
 async def generate_caption(image: UploadFile = File(...),
                            captioner: ImageCaptioner = Depends(get_captioner)):
     image_bytes = await image.read()
-    caption = caption.generate_caption(image_bytes)
+    caption = captioner.generate_caption(image_bytes)
     return CaptionResponse(caption=caption)

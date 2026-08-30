@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from src.api.routers import caption, search
-from src.inference.image_captioner import ImageCaptioner
+from src.model.image_captioner import ImageCaptioner
 from src.inference.clip_search import CLIPSearcher
 
 

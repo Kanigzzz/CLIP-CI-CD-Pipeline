@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CLIP & BLIP API</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-950 text-white min-h-screen font-sans">
 
     <header class="border-b border-gray-800 px-8 py-5 flex items-center gap-3">
@@ -20,7 +22,8 @@
             <h2 class="text-base font-semibold mb-1">Image Caption</h2>
             <p class="text-gray-400 text-sm mb-6">Upload an image and get an automatic description using BLIP.</p>
 
-            <div id="drop-zone" class="border-2 border-dashed border-gray-700 rounded-xl p-10 text-center cursor-pointer hover:border-indigo-500 transition-colors duration-200">
+            <div id="drop-zone"
+                class="border-2 border-dashed border-gray-700 rounded-xl p-10 text-center cursor-pointer hover:border-indigo-500 transition-colors duration-200">
                 <input type="file" id="file-input" accept="image/*" class="hidden">
                 <p class="text-gray-500 text-sm">Click or drag & drop an image here</p>
             </div>
@@ -44,7 +47,8 @@
         <!-- Search -->
         <section class="bg-gray-900 rounded-2xl p-7 border border-gray-800">
             <h2 class="text-base font-semibold mb-1">Image Search</h2>
-            <p class="text-gray-400 text-sm mb-6">Describe what you're looking for and find similar images using CLIP.</p>
+            <p class="text-gray-400 text-sm mb-6">Describe what you're looking for and find similar images using CLIP.
+            </p>
 
             <div class="flex gap-3">
                 <input type="text" id="search-input" placeholder="e.g. a cat on a tree..."
@@ -64,7 +68,7 @@
     </main>
 
     <script>
-        const API = 'https://api.chaberkamil.org/api/v1';
+        const API = 'https://localhost:8000/api/v1';
 
         // ── Caption ──────────────────────────────────────────────
         const dropZone = document.getElementById('drop-zone');
@@ -176,4 +180,5 @@
     </script>
 
 </body>
+
 </html>
