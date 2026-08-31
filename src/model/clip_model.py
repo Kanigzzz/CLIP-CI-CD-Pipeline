@@ -48,10 +48,7 @@ class TextEmbeddingTower(nn.Module):
 
     def mean_pooling(self, last_hidden_state: torch.Tensor, attention_mask: torch.Tensor):
 
-        input_mask_expanded = (
-            attention_mask.unsqueeze(-1).expand(
-                last_hidden_state.size()).float()
-        )
+        input_mask_expanded = attention_mask.unsqueeze(-1).float()
 
         sum_embedding = torch.sum(
             last_hidden_state * input_mask_expanded, dim=1)

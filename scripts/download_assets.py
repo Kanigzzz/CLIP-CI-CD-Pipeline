@@ -7,8 +7,9 @@ ROOT = Path(__file__).resolve().parent.parent
 MODEL_REPO = "Kamil123456789/clip-animals"
 DATA_REPO = "Kamil123456789/clip-animals-data"
 
+
 def download_model():
-    dest = ROOT / "models" / "best_model.pth"
+    dest = ROOT / "models" / "text_tower_quantized.onnx"
     if dest.exists():
         print("Model already exists, skipping")
         return
@@ -17,9 +18,10 @@ def download_model():
     hf_hub_download(
         repo_id=MODEL_REPO,
         repo_type="model",
-        filename="best_model.pth",
+        filename="text_tower_quantized.onnx",
         local_dir=str(ROOT / "models")
     )
+
 
 def download_dataset():
     dest = ROOT / "data" / "database" / "animals_index.faiss"
@@ -33,11 +35,12 @@ def download_dataset():
         local_dir=str(ROOT / "data" / "database")
     )
 
-    wrong_animal = ROOT/ "data" / "database" / "animals"
+    wrong_animal = ROOT / "data" / "database" / "animals"
     correct_animals = ROOT / "data" / "animals"
 
     if wrong_animal.exists() and not correct_animals.exists():
         shutil.move(str(wrong_animal), str(correct_animals))
+
 
 if __name__ == "__main__":
     download_model()

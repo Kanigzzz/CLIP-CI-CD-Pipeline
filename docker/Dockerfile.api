@@ -20,7 +20,7 @@ COPY scripts/ ./scripts/
 COPY entrypoint.sh .
 
 RUN chmod +x entrypoint.sh  && \
-    mkdir -p /app/models /app/data /app/.cache && \
+    mkdir -p /app/models /app/data /app/.cache/huggingface && \
     chown -R appuser:appuser /app
     
 ENV HF_HOME=/app/.cache/huggingface

@@ -11,3 +11,5 @@ faiss-cpu>=1.8.0
 pydantic>=2.0
 pyyaml
 huggingface_hub
+onnx>=1.16.0
+onnxruntime>=1.19.0
