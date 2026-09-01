@@ -7,15 +7,6 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def strip_initializer_value_info(model_path: Path, cleaned_path: Path) -> None:
-    """Usuwa wpisy value_info opisujace wagi (initializery).
-
-    Eksporter torch.onnx zapisuje value_info takze dla wag. quantize_dynamic
-    zamienia Gemm(transB=1) na MatMul i przy okazji transponuje wage
-    ([256, 768] -> [768, 256]), ale nie aktualizuje jej value_info. Kolejny
-    przebieg shape inference widzi wtedy sprzecznosc ksztaltow i wywala
-    InferenceError. Te wpisy sa nadmiarowe - ksztalty wag wynikaja wprost
-    z samych initializerow.
-    """
     model = onnx.load(str(model_path))
 
     initializer_names = {init.name for init in model.graph.initializer}

@@ -8,7 +8,6 @@ model:
   max_text_length: 32
 
 training:
-  device: "mps"
   batch_size: 32
   samples_per_class: 2
   learning_rate_head: 0.0001

@@ -6,8 +6,6 @@ import numpy as np
 from pathlib import Path
 from transformers import AutoTokenizer
 
-from src.model.clip_model import CLIPModel
-
 _ROOT = Path(__file__).resolve().parent.parent.parent
 with open(_ROOT / "configs" / "config_model_training.yaml") as f:
     _CFG = yaml.safe_load(f)

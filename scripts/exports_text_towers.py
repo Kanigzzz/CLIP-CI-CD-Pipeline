@@ -3,7 +3,6 @@
 import yaml
 import torch
 import onnx
-from onnx.external_data_helper import load_external_data_for_model
 from pathlib import Path
 from src.model.clip_model import CLIPModel
 
@@ -48,9 +47,8 @@ def export_text_tower():
         }
     )
 
-    onnx_model = onnx.load(str(output_onnx_file))
-    load_external_data_for_model(onnx_model, str(output_onnx_file.parent))
-    onnx.save(onnx_model, str(output_onnx_file))
+    onnx.checker.check_model(str(output_onnx_file))
+    print(f"Pomyślnie zweryfikowano poprawnosci modelu: {output_onnx_file}")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 echo "Downloading assets from HF..."
 python scripts/download_assets.py

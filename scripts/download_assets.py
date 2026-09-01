@@ -5,7 +5,9 @@ from huggingface_hub import hf_hub_download, snapshot_download
 ROOT = Path(__file__).resolve().parent.parent
 
 MODEL_REPO = "Kamil123456789/clip-animals"
+MODEL_REVISION = "e3732e377768e0383caa96e3a1f43963bee9e79e"
 DATA_REPO = "Kamil123456789/clip-animals-data"
+DATA_REVISION = "061f7a988f864a5fb786b90acf1ab07136c3d5f7"
 
 
 def download_model():
@@ -17,6 +19,7 @@ def download_model():
     print("Downloading model...")
     hf_hub_download(
         repo_id=MODEL_REPO,
+        revision=MODEL_REVISION,
         repo_type="model",
         filename="text_tower_quantized.onnx",
         local_dir=str(ROOT / "models")
@@ -31,6 +34,7 @@ def download_dataset():
     print("Dowloading dataset...")
     snapshot_download(
         repo_id=DATA_REPO,
+        revision=DATA_REVISION,
         repo_type="dataset",
         local_dir=str(ROOT / "data" / "database")
     )

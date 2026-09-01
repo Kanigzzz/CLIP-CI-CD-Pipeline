@@ -1,3 +1,2 @@
 data:
-  device: "mps"
   model: "Salesforce/blip-image-captioning-base"
