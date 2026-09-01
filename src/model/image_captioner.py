@@ -31,16 +31,12 @@ class ImageCaptioner:
         self.model.eval()
 
     def generate_caption(self, images_bytes: bytes) -> str:
-        try:
-            raw_img = Image.open(BytesIO(images_bytes)).convert("RGB")
-            inputs = self.processor(
-                raw_img, return_tensors="pt").to(self.device)
+        raw_img = Image.open(BytesIO(images_bytes)).convert("RGB")
+        inputs = self.processor(
+            raw_img, return_tensors="pt").to(self.device)
 
-            with torch.no_grad():
-                out = self.model.generate(**inputs, max_new_tokens=20)
+        with torch.no_grad():
+            out = self.model.generate(**inputs, max_new_tokens=20)
 
-            caption = self.processor.decode(out[0], skip_special_tokens=True)
-            return caption
-
-        except Exception as e:
-            return f"Error: {str(e)}"
+        caption = self.processor.decode(out[0], skip_special_tokens=True)
+        return caption
