@@ -5,7 +5,7 @@ services:
       dockerfile: docker/Dockerfile.api
     ports:
       - "8000:8000"
-    restart: unless-stoped
+    restart: unless-stopped
     environment:
       - HF_TOKEN=${HF_TOKEN}
     volumes:
@@ -19,7 +19,7 @@ services:
       dockerfile: docker/Dockerfile.frontend
     ports:
       - "80:80"
-    restart: unless-stoped
+    restart: unless-stopped
     depends_on:
       - api
 
