@@ -11,7 +11,7 @@ def test_faiss_and_images_paths_aligment():
     num_paths = len(searcher.image_paths)
 
     assert num_paths == num_vectores, (
-        f"KRYTYCZNY BŁĄD INTEGRALNOŚCI: Liczba wektorów w FAISS ({num_vectors}) "
+        f"KRYTYCZNY BŁĄD INTEGRALNOŚCI: Liczba wektorów w FAISS ({num_vectores}) "
         f"nie zgadza się z liczbą ścieżek w JSON ({num_paths})!"
     )
 
