@@ -1,4 +1,35 @@
-### Własna implementacja CLIP-a zamiast gotowego modelu
+# CLIP Animal Search
+
+> Wyszukiwanie zdjęć zapytaniem tekstowym oraz automatyczne generowanie opisów -
+> Od wytrenowanego modelu do skonteneryzowanej aplikacji.
+
+## Co to jest?
+
+Kompletny pipeline wdrozeniowy dla aplikacji ML. Projekt opiera się na problemach operacyjnych,
+jakie stawia przez inzynierem wdrozenie aplikacji z domeny ML - drzewo zaleznosci rzedu kilku GB, koniecznosc 
+osobnego wersjonowania artefaktów modelu, zimny start modelu az po specyfike asynchronicznosci w obliczeniach modelu.
+
+Projekt koncentruje się na stronie operacyjnej: ciężkim drzewie zależności sięgającym kilku GB, niezależnym wersjonowaniu artefaktów modeli, 
+cold starcie, inferencji oraz specyfice uruchamiania obliczeń ML w środowisku produkcyjnym.
+
+## Szybki start 
+
+```bash
+git clone https://github.com/Kanigzzz/CLIP-CI-CD-Pipeline.git
+cd CLIP-CI-CD-Pipeline
+docker compose up --build
+```
+
+Aplikacja: <http://localhost>
+API: <http://localhost:8000/docs>
+
+## Dziennik decyzji 
+
+### Ładowanie modeli przy starcie kontenera, nie przy ządaniu
+
+### Wersjonowanie artefaktów: HF Hub z przypiętą rewizją zamiast DVC
+
+### ONNX i kwantyzacja w sciezce wyszukiwania
 
 **Własna implementacja modelu typu CLIP zamiast gotowego modelu `openai/clip-vit-base-patch32`**
 
@@ -107,3 +138,4 @@ Sprawdzenie, czy architektura jest wspierana przez narzędzie eksportu, trwa
 pięć minut i należy do etapu wyboru modelu — nie do momentu, w którym stoi już
 na nim API i przychodzi czas na migrację do ONNX. Dziś przy wyborze modelu
 patrzę na trzy rzeczy naraz: jakość, rozmiar i wsparcie w narzędziach eksportu.
+
