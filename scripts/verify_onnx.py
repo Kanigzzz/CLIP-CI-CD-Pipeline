@@ -35,7 +35,7 @@ def verify():
             tokens['input_ids'], tokens['attention_mask'])
         embedding_text = F.normalize(embedding_text, p=2, dim=-1).numpy()
 
-    onnx_path = ROOT / "models" / "text_tower.onnx"
+    onnx_path = ROOT / "models" / "text_tower_quantized.onnx"
     session = ort.InferenceSession(str(onnx_path))
 
     onnx_input = {
