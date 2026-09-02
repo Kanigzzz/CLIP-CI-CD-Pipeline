@@ -7,17 +7,20 @@ from pathlib import Path
 from transformers import AutoTokenizer
 
 _ROOT = Path(__file__).resolve().parent.parent.parent
-with open(_ROOT / "configs" / "config_model_training.yaml") as f:
-    _CFG = yaml.safe_load(f)
+_ROOT_CONFIG_FILE = _ROOT / "configs" / "config_model_training.yaml"
 
 
 class CLIPSearcher:
-    def __init__(self):
+    def __init__(self, config_path: str | Path | None = None):
+        cfg_file = Path(config_path) if config_path else _ROOT_CONFIG_FILE
+        with open(cfg_file, "r", unicode="utf-8") as f:
+            self.cfg = yaml.safe_load(f)
+
         onnx_model_path = _ROOT / "models" / "text_tower_quantized.onnx"
         self.session = ort.InferenceSession(str(onnx_model_path))
 
         self.tokenizer = AutoTokenizer.from_pretrained(
-            _CFG['model']['text_encoder'])
+            self.cfg['model']['text_encoder'])
         self.index = faiss.read_index(
             str(_ROOT / "data" / "database" / "animals_index.faiss"))
 
@@ -27,7 +30,7 @@ class CLIPSearcher:
     def search(self, query: str, top_k: int = 3) -> list[dict]:
         tokens = self.tokenizer(
             query,
-            max_length=_CFG['model']['max_text_length'],
+            max_length=self.cfg['model']['max_text_length'],
             padding=True,
             truncation=True,
             return_tensors="np"
