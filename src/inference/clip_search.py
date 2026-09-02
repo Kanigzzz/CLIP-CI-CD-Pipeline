@@ -13,7 +13,7 @@ _ROOT_CONFIG_FILE = _ROOT / "configs" / "config_model_training.yaml"
 class CLIPSearcher:
     def __init__(self, config_path: str | Path | None = None):
         cfg_file = Path(config_path) if config_path else _ROOT_CONFIG_FILE
-        with open(cfg_file, "r", unicode="utf-8") as f:
+        with open(cfg_file, "r", encoding="utf-8") as f:
             self.cfg = yaml.safe_load(f)
 
         onnx_model_path = _ROOT / "models" / "text_tower_quantized.onnx"
