@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from src.api.routers import caption, search
 from src.model.image_captioner import ImageCaptioner
 from src.inference.clip_search import CLIPSearcher
-from utils.logger import setup_logging
+from src.utils.logger import setup_logging
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 
