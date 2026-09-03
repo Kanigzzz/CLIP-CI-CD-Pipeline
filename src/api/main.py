@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI):
     logger.info(
         "Models initialized successfully. Application is ready to receive requests.")
     yield
-    logging.info("Shutting down aplication...")
+    logger.info("Shutting down aplication...")
     del app.state.searcher
     del app.state.captioner
 
