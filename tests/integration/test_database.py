@@ -1,7 +1,10 @@
 from pathlib import Path
 from src.inference.clip_search import CLIPSearcher
+import pytest
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
+
+pytestmark = pytest.mark.integration
 
 
 def test_faiss_and_images_paths_aligment():

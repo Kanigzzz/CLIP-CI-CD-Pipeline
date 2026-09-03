@@ -1,0 +1,9 @@
+[tool.pytest.ini_options]
+
+addopts = "--strict-markers"
+
+pythonpath = "."
+
+markers = [
+    "integration: testy które wymagają modeli ML i bazy FAISS"
+]

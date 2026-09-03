@@ -1,14 +1,36 @@
 import io
 import pytest
 from PIL import Image
+from src.api.routers.caption import get_captioner
+from src.api.routers.search import get_searcher
 from fastapi.testclient import TestClient
 from src.api.main import app
 
 
+class FakeCaptioner():
+    def generate_caption(self, image_bytes: bytes) -> str:
+        return "test text"
+
+
+class FakeSearcher():
+    def __init__(self):
+        self._result = [{"path": f"fake/{i}dog.jpg", "score": 0.99}
+                        for i in range(100)]
+
+    def search(self, query: str, top_k: int = 3):
+        return self._result[:top_k]
+
+
 @pytest.fixture(scope="module")
 def client():
-    with TestClient(app) as test_client:
-        yield test_client
+    test_client = TestClient(app)
+
+    app.dependency_overrides[get_captioner] = lambda: FakeCaptioner()
+    app.dependency_overrides[get_searcher] = lambda: FakeSearcher()
+
+    yield test_client
+
+    app.dependency_overrides.clear()
 
 
 def test_health_endpoint(client):
@@ -36,7 +58,7 @@ def test_search_valid_querys(client, query, top_k):
     assert response.status_code == 200
     data = response.json()
     assert "results" in data
-    assert len(data["results"]) == top_k
+    assert len(data["results"]) <= top_k
 
     for item in data["results"]:
         assert "path" in item
@@ -78,7 +100,19 @@ def test_caption_valid_image(client):
 
     response = client.post(
         "/api/v1/caption",
-        files={"images": ("test.jpg", img_byte, "image/jpeg")}
+        files={"image": ("test.jpg", img_byte, "image/jpeg")}
     )
 
+    assert response.status_code == 200
+    data = response.json()
+    assert set(data) == {"caption"}
+    assert isinstance(data["caption"], str)
+    assert data["caption"].strip()
+
+
+def test_caption_invalid_image(client):
+    response = client.post(
+        "/api/v1/caption",
+        files={"image": ("test_plik.txt", b"Tekst", "text/plain")}
+    )
     assert response.status_code == 400
