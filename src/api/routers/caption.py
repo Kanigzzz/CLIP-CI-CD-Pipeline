@@ -24,7 +24,7 @@ async def generate_caption(image: UploadFile = File(...),
 
     if not image.content_type or image.content_type.lower() not in ALLOWED_CONTENT_TYPES:
         logger.warning("Usupported file type", extra={
-                       "content_type": image.content_type, "filename": image.filename})
+                       "content_type": image.content_type, "uploaded_filename": image.filename})
         raise HTTPException(
             status_code=400,
             detail=f"unsupported file type: {image.content_type}. Allowed image types: {', '.join(sorted(ALLOWED_CONTENT_TYPES))}"
