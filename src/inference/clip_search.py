@@ -53,4 +53,5 @@ class CLIPSearcher:
             {"path": self.image_paths[idx],
              "score": round(float(score), 4)}
             for idx, score in zip(indices[0], scores[0])
+            if idx != -1
         ]
