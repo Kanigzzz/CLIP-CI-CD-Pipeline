@@ -1,10 +1,12 @@
 import time
 import asyncio
 import logging
+from typing import TYPE_CHECKING
 from PIL import UnidentifiedImageError
 from fastapi import APIRouter, UploadFile, File, Depends, Request, HTTPException
 from src.api.schemas import CaptionResponse
-from src.model.image_captioner import ImageCaptioner
+if TYPE_CHECKING:
+    from src.model.image_captioner import ImageCaptioner
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -14,13 +16,13 @@ ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
 CHUNK_SIZE = 1024 * 1024
 
 
-def get_captioner(request: Request) -> ImageCaptioner:
+def get_captioner(request: Request) -> "ImageCaptioner":
     return request.app.state.captioner
 
 
 @router.post("/caption", response_model=CaptionResponse)
 async def generate_caption(image: UploadFile = File(...),
-                           captioner: ImageCaptioner = Depends(get_captioner)):
+                           captioner: "ImageCaptioner" = Depends(get_captioner)):
 
     if not image.content_type or image.content_type.lower() not in ALLOWED_CONTENT_TYPES:
         logger.warning("Usupported file type", extra={

@@ -1,19 +1,21 @@
 import time
 import logging
+from typing import TYPE_CHECKING
 from fastapi import APIRouter, Depends, Request, HTTPException
 from src.api.schemas import SearchRequest, SearchResponse, SearchResult
-from src.inference.clip_search import CLIPSearcher
+if TYPE_CHECKING:
+    from src.inference.clip_search import CLIPSearcher
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-def get_searcher(request: Request) -> CLIPSearcher:
+def get_searcher(request: Request) -> "CLIPSearcher":
     return request.app.state.searcher
 
 
 @router.post("/search", response_model=SearchResponse)
-def search_images(body: SearchRequest, searcher: CLIPSearcher = Depends(get_searcher)):
+def search_images(body: SearchRequest, searcher: "CLIPSearcher" = Depends(get_searcher)):
     if not body.query or not body.query.strip():
         logger.warning("Empty search query received",
                        extra={"top_k": body.top_k})

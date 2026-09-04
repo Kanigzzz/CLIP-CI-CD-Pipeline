@@ -139,3 +139,93 @@ pięć minut i należy do etapu wyboru modelu — nie do momentu, w którym stoi
 na nim API i przychodzi czas na migrację do ONNX. Dziś przy wyborze modelu
 patrzę na trzy rzeczy naraz: jakość, rozmiar i wsparcie w narzędziach eksportu.
 
+
+### Kacze typowanie i lekka warstwa API zamiast sformalizowanych protokołów
+
+**W mikroserwisie ML warstwa API powinna być odchudzona – formalizm typowania
+nie musi wymuszać importu bibliotek ML.**
+
+**Kontekst.** Routery `/search` i `/caption` wymagają instancji silników
+inferencyjnych (`CLIPSearcher`, `ImageCaptioner`). Instancje powstają raz,
+w `lifespan` aplikacji, i trafiają do routerów przez `Depends` czytające
+`request.app.state`. W architekturze, która stawia na czyste typowanie,
+naturalnym posunięciem jest wykorzystanie formalnych interfejsów
+(np. `typing.Protocol`) oraz weryfikacja zgodności za pomocą lintera
+(np. `mypy`) w pipeline CI.
+
+**Na czym polegał problem.** Routery importowały klasy modeli **wyłącznie po
+to, żeby użyć ich jako adnotacji typu** w `Depends`. Adnotacja niepotrzebna
+w runtime ciągnęła za sobą cały stos ML, przez co testy jednostkowe API nie
+przechodziły nawet fazy zbierania:
+
+    tests/test_api.py → src.api.routers.search → src.inference.clip_search
+    ModuleNotFoundError: No module named 'faiss'
+
+Narzut samego importu to 2,3 s i 233 MB RSS na każde uruchomienie testów.
+Warto zaznaczyć, czego problemem nie było: wagi modeli nigdy się w testach nie
+ładowały. `TestClient(app)` używany bez `with` nie odpala `lifespan`, więc
+konstruktory `CLIPSearcher()` i `ImageCaptioner()` nie były wołane. Kosztem był
+sam import bibliotek, nie zużycie pamięci przez modele.
+
+Sformalizowanie tego protokołami byłoby przy obecnej architekturze
+overengineeringiem: kontrakt jest wąski (dwie metody — `.search()`,
+`.generate_caption()`), stabilny i ma jedną implementację produkcyjną.
+
+**Decyzja i implementacja.** Zrezygnowałem z formalizmu na rzecz kaczego
+typowania (*duck typing*) oraz wstrzykiwania zależności (`FastAPI Depends`):
+
+- W routerach zastosowałem strażnika `if TYPE_CHECKING:` do importu klas
+  modeli, a adnotacje ująłem w cudzysłowy. Cudzysłowy są tu obowiązkowe, nie
+  kosmetyczne — Python nie zamienia adnotacji na stringi samoczynnie, więc bez
+  nich `def get_searcher(...) -> CLIPSearcher` rzuciłoby `NameError` już przy
+  definiowaniu funkcji.
+- W `src/api/main.py` sam `TYPE_CHECKING` nie wystarcza, bo klasy są tam
+  *wołane*, nie tylko adnotowane. Import wędruje do wnętrza `lifespan`, czyli
+  wykonuje się przy starcie serwera, nigdy przy imporcie modułu.
+- W testach jednostkowych (`test_api.py`) atrapy `FakeSearcher`
+  i `FakeCaptioner` implementują jedynie oczekiwane sygnatury metod i są
+  wstrzykiwane przez `app.dependency_overrides`.
+
+FastAPI **próbuje** rozwinąć taką adnotację i przeżywa dzięki dwóm
+zabezpieczeniom. `_get_signature()` woła `inspect.signature(call, eval_str=True)`,
+łapie `NameError` i schodzi do wariantu zostawiającego adnotacje surowymi
+stringami — komentarz w źródle mówi wprost: *„Handle type annotations with
+if TYPE_CHECKING, not used by FastAPI"*. Następnie `get_typed_annotation()`
+rozwija string przez pydantic'owe `try_eval_type()`, które przy nieznanej
+nazwie zwraca nierozwiązany `ForwardRef` zamiast rzucić wyjątkiem. Na końcu
+`analyze_param()` widzi `Depends(...)` i nie robi z parametru pola pydantic,
+więc `ForwardRef` nigdy nie musi zostać rozwiązany.
+
+Dzięki temu testy jednostkowe API wykonują się błyskawicznie i nie zależą od
+`faiss`, `torch` ani `onnxruntime`.
+
+**Koszt.** Nie ma statycznej weryfikacji zgodności atrap z prawdziwymi klasami
+— i trzeba to nazwać dokładnie: nie jest to rezygnacja z czegoś, co projekt
+miał. W repozytorium nie ma `mypy` ani w `requirements.txt`, ani w konfiguracji
+`pyproject.toml`, a `.github/workflows/ci.yml` jest pusty. Protokół bez lintera,
+który go sprawdza, byłby komentarzem o lepszej składni. Gdyby metoda w modelu
+zmieniła sygnaturę (np. argumenty w `.search()`), a atrapa w testach pozostała
+stara, testy jednostkowe API pozostałyby zielone. Nie złapałyby tego również
+testy integracyjne — `tests/integration/conftest.py` wycina je przez
+`collect_ignore_glob`, gdy brakuje `faiss`, `onnxruntime` lub `transformers`,
+czyli dokładnie w środowisku, w którym uruchamia się testy jednostkowe. Rozjazd
+wyszedłby dopiero przy realnym starcie aplikacji.
+
+Drugim kosztem jest warunek brzegowy: `TYPE_CHECKING` działa tu **wyłącznie dla
+parametrów wstrzykiwanych przez `Depends`**. Ta sama adnotacja bez `Depends`
+staje się polem do walidacji i psuje się późno — import przechodzi w ciszy,
+request zwraca mylące `422 Field required`, a `/openapi.json` wywraca się na
+`PydanticUserError: TypeAdapter[...] is not fully defined`. Testy mogą być
+zielone przy leżącym `/docs`, więc przy dokładaniu endpointów trzeba o tym
+pamiętać. Zweryfikowane na `fastapi 0.136.3` / `pydantic 2.12.5`;
+`requirements.txt` nie ma górnego ograniczenia wersji.
+
+**Wniosek.**
+
+- **Architektoniczny (YAGNI):** dopóki interfejs modelu jest wąski i stabilny,
+  a w pipeline nie ma type-checkera, narzut utrzymania formalnych protokołów
+  przewyższa realne korzyści.
+- **Wdrożeniowy:** kluczowym zyskiem jest odcięcie ciężkiego runtime'u ML od
+  warstwy webowej.
+- **Warunek rewizji:** decyzja przestaje się bronić w momencie dodania `mypy`
+  do CI. Wtedy `Protocol` zaczyna realnie pilnować atrap i warto go wprowadzić.

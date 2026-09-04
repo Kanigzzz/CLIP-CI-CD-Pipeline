@@ -5,8 +5,6 @@ from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from src.api.routers import caption, search
-from src.model.image_captioner import ImageCaptioner
-from src.inference.clip_search import CLIPSearcher
 from src.utils.logger import setup_logging
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -18,6 +16,9 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Initializing models and vector database...")
+    from src.model.image_captioner import ImageCaptioner
+    from src.inference.clip_search import CLIPSearcher
+
     app.state.searcher = CLIPSearcher()
     app.state.captioner = ImageCaptioner()
     logger.info(
@@ -29,7 +30,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="CLIP | BLIP API", version="1.0.0", lifespan=lifespan)
 app.mount("/animals", StaticFiles(directory=(ROOT /
-          "data" / "animals")), name="animals")
+          "data" / "animals"), check_dir=False), name="animals")
 
 app.add_middleware(
     CORSMiddleware,
