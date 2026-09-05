@@ -7,3 +7,5 @@ pythonpath = "."
 markers = [
     "integration: testy które wymagają modeli ML i bazy FAISS"
 ]
+
+testpaths = ["tests"]
