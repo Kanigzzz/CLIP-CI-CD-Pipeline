@@ -4,6 +4,7 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -36,3 +37,32 @@ jobs:
 
       - name: Run test
         run: python -m pytest -m "not integration"
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "requirements.lock"
+      
+      - name: Install full ML dependencies
+        run: uv pip install --system -r requirements.lock
+
+      - name: Validate Integration tests presence 
+        run: test "$(pytest tests/integration --collect-only -q | grep -c '::')" -ge 2
+
+      - name: Run Integration Tests
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python -m pytest tests/integration/
