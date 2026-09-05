@@ -202,8 +202,9 @@ Dzięki temu testy jednostkowe API wykonują się błyskawicznie i nie zależą 
 **Koszt.** Nie ma statycznej weryfikacji zgodności atrap z prawdziwymi klasami
 — i trzeba to nazwać dokładnie: nie jest to rezygnacja z czegoś, co projekt
 miał. W repozytorium nie ma `mypy` ani w `requirements.txt`, ani w konfiguracji
-`pyproject.toml`, a `.github/workflows/ci.yml` jest pusty. Protokół bez lintera,
-który go sprawdza, byłby komentarzem o lepszej składni. Gdyby metoda w modelu
+`pyproject.toml`, a `.github/workflows/ci.yml` uruchamia wyłącznie `pytest` —
+nie ma w nim kroku type-checkingu. Protokół bez lintera, który go sprawdza,
+byłby komentarzem o lepszej składni. Gdyby metoda w modelu
 zmieniła sygnaturę (np. argumenty w `.search()`), a atrapa w testach pozostała
 stara, testy jednostkowe API pozostałyby zielone. Nie złapałyby tego również
 testy integracyjne — `tests/integration/conftest.py` wycina je przez

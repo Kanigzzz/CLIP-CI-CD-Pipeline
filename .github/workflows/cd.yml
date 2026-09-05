@@ -1,9 +1,12 @@
-name: cd
+name: CD
 
 on:
-  push:
-    branches: ["main"]
-    tags: ["v*.*.*"]
+  workflow_run:
+    workflows: ["CI"]
+    types:
+        - completed
+    branches:
+        - main
 
 concurrency:
     group: cd-${{ github.ref }}
@@ -15,6 +18,7 @@ permissions:
 
 jobs:
   build-and-push:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
 
