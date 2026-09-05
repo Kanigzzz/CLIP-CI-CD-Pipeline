@@ -59,6 +59,11 @@ jobs:
       - name: Install full ML dependencies
         run: uv pip install --system -r requirements.lock
 
+      - name: Download models and assets
+        env: 
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python scripts/download_assets.py
+        
       - name: Validate Integration tests presence 
         run: test "$(pytest tests/integration --collect-only -q | grep -c '::')" -ge 2
 
