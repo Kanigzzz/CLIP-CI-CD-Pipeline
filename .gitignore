@@ -17,6 +17,7 @@ env/
 .vscode/
 # Pliki Pythona i cache
 __pycache__/
+*.pyc
 *.py[cod]
 *$py.class
 .pytest_cache/
