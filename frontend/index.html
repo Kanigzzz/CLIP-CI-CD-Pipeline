@@ -4,181 +4,463 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLIP & BLIP API</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
-<body class="bg-gray-950 text-white min-h-screen font-sans">
-
-    <header class="border-b border-gray-800 px-8 py-5 flex items-center gap-3">
-        <div class="w-2 h-2 rounded-full bg-indigo-400"></div>
-        <h1 class="text-lg font-semibold tracking-tight">CLIP & BLIP <span class="text-indigo-400">API</span></h1>
-    </header>
-
-    <main class="max-w-3xl mx-auto px-6 py-12 space-y-8">
-
-        <!-- Caption -->
-        <section class="bg-gray-900 rounded-2xl p-7 border border-gray-800">
-            <h2 class="text-base font-semibold mb-1">Image Caption</h2>
-            <p class="text-gray-400 text-sm mb-6">Upload an image and get an automatic description using BLIP.</p>
-
-            <div id="drop-zone"
-                class="border-2 border-dashed border-gray-700 rounded-xl p-10 text-center cursor-pointer hover:border-indigo-500 transition-colors duration-200">
-                <input type="file" id="file-input" accept="image/*" class="hidden">
-                <p class="text-gray-500 text-sm">Click or drag & drop an image here</p>
-            </div>
-
-            <div id="preview-container" class="hidden mt-5">
-                <img id="preview-img" class="max-h-60 rounded-xl mx-auto object-contain">
-            </div>
-
-            <button id="caption-btn"
-                class="mt-5 w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-medium transition-colors duration-200"
-                disabled>
-                Generate Caption
-            </button>
-
-            <div id="caption-result" class="hidden mt-5 bg-gray-800 rounded-xl px-5 py-4">
-                <p class="text-xs text-gray-400 mb-1 uppercase tracking-wider">Caption</p>
-                <p id="caption-text" class="text-white text-sm leading-relaxed"></p>
-            </div>
-        </section>
-
-        <!-- Search -->
-        <section class="bg-gray-900 rounded-2xl p-7 border border-gray-800">
-            <h2 class="text-base font-semibold mb-1">Image Search</h2>
-            <p class="text-gray-400 text-sm mb-6">Describe what you're looking for and find similar images using CLIP.
-            </p>
-
-            <div class="flex gap-3">
-                <input type="text" id="search-input" placeholder="e.g. a cat on a tree..."
-                    class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors duration-200">
-                <button id="search-btn"
-                    class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 px-6 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200">
-                    Search
-                </button>
-            </div>
-
-            <div id="search-results" class="hidden mt-6 space-y-2">
-                <p class="text-xs text-gray-400 uppercase tracking-wider mb-3">Results</p>
-                <div id="results-list" class="space-y-2"></div>
-            </div>
-        </section>
-
-    </main>
-
-    <script>
-        const API = 'http://localhost:8000/api/v1';
-
-        // ── Caption ──────────────────────────────────────────────
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-        const captionBtn = document.getElementById('caption-btn');
-        const previewContainer = document.getElementById('preview-container');
-        const previewImg = document.getElementById('preview-img');
-        const captionResult = document.getElementById('caption-result');
-        const captionText = document.getElementById('caption-text');
-
-        let selectedFile = null;
-
-        dropZone.addEventListener('click', () => fileInput.click());
-
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('border-indigo-500');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('border-indigo-500');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('border-indigo-500');
-            const file = e.dataTransfer.files[0];
-            if (file) handleFile(file);
-        });
-
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files[0]) handleFile(fileInput.files[0]);
-        });
-
-        function handleFile(file) {
-            selectedFile = file;
-            previewImg.src = URL.createObjectURL(file);
-            previewContainer.classList.remove('hidden');
-            captionBtn.disabled = false;
-            captionResult.classList.add('hidden');
+    <title>CLIP &amp; BLIP API — demo</title>
+    <style>
+        :root {
+            --bg: #f6f7f9;
+            --surface: #fff;
+            --border: #e2e5ea;
+            --text: #16181d;
+            --muted: #697080;
+            --accent: #3b5bdb;
+            --accent-soft: #eef1fd;
+            --danger: #c92a2a;
+            --radius: 10px;
         }
 
-        captionBtn.addEventListener('click', async () => {
-            if (!selectedFile) return;
-            captionBtn.textContent = 'Generating...';
-            captionBtn.disabled = true;
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f1115;
+                --surface: #171a20;
+                --border: #272c35;
+                --text: #e8eaed;
+                --muted: #98a0ae;
+                --accent: #748ffc;
+                --accent-soft: #1c2233;
+                --danger: #ff8787;
+            }
+        }
 
-            const formData = new FormData();
-            formData.append('image', selectedFile);
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: .85em;
+        }
+
+        a {
+            color: var(--accent);
+        }
+
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+        }
+
+        .bar {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            font-size: 1.1rem;
+            margin: 0;
+            font-weight: 650;
+        }
+
+        .spacer {
+            flex: 1;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            display: grid;
+            gap: 1.25rem;
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+            align-items: start;
+        }
+
+        section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+        }
+
+        h2 {
+            font-size: 1rem;
+            margin: 0 0 .15rem;
+            font-weight: 650;
+        }
+
+        .endpoint {
+            display: inline-block;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border-radius: 5px;
+            padding: .1rem .4rem;
+            margin-bottom: .75rem;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: .9rem;
+            margin: 0 0 1rem;
+        }
+
+        .drop {
+            width: 100%;
+            border: 1.5px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 1.75rem 1rem;
+            text-align: center;
+            color: var(--muted);
+            background: none;
+            font: inherit;
+            font-size: .9rem;
+            cursor: pointer;
+        }
+
+        .drop:hover,
+        .drop:focus-visible,
+        .drop.over {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .preview {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .preview img {
+            max-height: 210px;
+            border-radius: var(--radius);
+        }
+
+        .row {
+            display: flex;
+            gap: .5rem;
+        }
+
+        input[type=text],
+        select,
+        button.primary {
+            font: inherit;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: .55rem .75rem;
+        }
+
+        input[type=text] {
+            flex: 1;
+            min-width: 0;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        select {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        input[type=text]:focus,
+        select:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: -1px;
+        }
+
+        button.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            font-weight: 550;
+            cursor: pointer;
+        }
+
+        button.primary:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .full {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .out {
+            margin-top: 1rem;
+            font-size: .95rem;
+        }
+
+        .caption {
+            background: var(--accent-soft);
+            border-radius: var(--radius);
+            padding: .75rem 1rem;
+            margin: 0;
+        }
+
+        .error {
+            color: var(--danger);
+        }
+
+        /* Czas odpowiedzi mierzony po stronie przegladarki - pokazuje, ze API realnie liczy. */
+        .latency {
+            color: var(--muted);
+            font-size: .8rem;
+            margin-top: .4rem;
+        }
+
+        ol.results {
+            list-style: none;
+            margin: 1rem 0 0;
+            padding: 0;
+            display: grid;
+            gap: .6rem;
+        }
+
+        ol.results li {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: .5rem;
+        }
+
+        ol.results img {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 6px;
+            flex: none;
+            background: var(--border);
+        }
+
+        .meta {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .label {
+            font-weight: 550;
+            text-transform: capitalize;
+        }
+
+        .score {
+            color: var(--muted);
+            font-size: .8rem;
+        }
+
+        .track {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-top: .3rem;
+        }
+
+        .fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        footer {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1.5rem 2.5rem;
+            color: var(--muted);
+            font-size: .85rem;
+        }
+
+        footer p {
+            margin: .35rem 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="bar">
+            <h1>CLIP &amp; BLIP API</h1>
+            <span class="spacer"></span>
+            <a href="/docs">API docs</a>
+        </div>
+    </header>
+
+    <main>
+        <section>
+            <h2>Describe an image</h2>
+            <code class="endpoint">POST /api/v1/caption</code>
+            <p class="hint">BLIP generates a caption for the image you upload. JPEG, PNG or WebP, up to 10 MB.</p>
+
+            <button class="drop" id="drop" type="button">Click to choose a file, or drop one here</button>
+            <input type="file" id="file" accept="image/jpeg,image/png,image/webp" hidden>
+
+            <div class="preview" id="preview" hidden><img id="preview-img" alt="Selected image"></div>
+
+            <button class="primary full" id="caption-btn" disabled>Generate caption</button>
+            <div class="out" id="caption-out" hidden></div>
+        </section>
+
+        <section>
+            <h2>Search images by text</h2>
+            <code class="endpoint">POST /api/v1/search</code>
+            <p class="hint">CLIP embeds your text, FAISS finds the nearest images in a 5&nbsp;400-photo animal set.</p>
+
+            <div class="row">
+                <input type="text" id="query" placeholder="a cat sitting on a tree" autocomplete="off">
+                <select id="top-k" aria-label="Number of results">
+                    <option value="3">3</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                </select>
+                <button class="primary" id="search-btn">Search</button>
+            </div>
+
+            <div class="out" id="search-out" hidden></div>
+            <ol class="results" id="results"></ol>
+        </section>
+    </main>
+
+    <footer>
+        <p>FastAPI · BLIP · CLIP text tower (ONNX, quantised) · FAISS · nginx · Docker Compose</p>
+        <p>This page is an AI-generated frontend. It exists only to exercise the API from a browser — the substance of
+            this project is the backend and its deployment.</p>
+    </footer>
+
+    <script>
+        const API = '/api/v1';
+        const $ = (id) => document.getElementById(id);
+
+        const escapeHtml = (s) => String(s).replace(/[&<>"]/g,
+            (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+        /** FastAPI puts the reason in `detail`; surface it instead of a generic failure. */
+        async function errorFrom(res) {
+            const body = await res.json().catch(() => null);
+            return `${res.status} — ${body?.detail ?? res.statusText}`;
+        }
+
+        function show(el, html, isError = false) {
+            el.innerHTML = html;
+            el.classList.toggle('error', isError);
+            el.hidden = false;
+        }
+
+        const took = (startedAt) => `<p class="latency">${Math.round(performance.now() - startedAt)} ms round trip</p>`;
+
+        // ── Caption ──────────────────────────────────────────────
+        const drop = $('drop'), fileInput = $('file'), captionBtn = $('caption-btn');
+        let selected = null;
+
+        function selectFile(file) {
+            if (!file) return;
+            selected = file;
+            $('preview-img').src = URL.createObjectURL(file);
+            $('preview').hidden = false;
+            drop.textContent = file.name;
+            captionBtn.disabled = false;
+            $('caption-out').hidden = true;
+        }
+
+        drop.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => selectFile(fileInput.files[0]));
+
+        drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+        drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+        drop.addEventListener('drop', (e) => {
+            e.preventDefault();
+            drop.classList.remove('over');
+            selectFile(e.dataTransfer.files[0]);
+        });
+
+        captionBtn.addEventListener('click', async () => {
+            if (!selected) return;
+            const out = $('caption-out');
+            captionBtn.disabled = true;
+            captionBtn.textContent = 'Generating…';
+
+            const form = new FormData();
+            form.append('image', selected);
+            const startedAt = performance.now();
 
             try {
-                const res = await fetch(`${API}/caption`, { method: 'POST', body: formData });
-                const data = await res.json();
-                captionText.textContent = data.caption;
-            } catch {
-                captionText.textContent = 'Error: could not connect to API.';
+                const res = await fetch(`${API}/caption`, { method: 'POST', body: form });
+                if (!res.ok) throw new Error(await errorFrom(res));
+                const { caption } = await res.json();
+                show(out, `<p class="caption">${escapeHtml(caption)}</p>${took(startedAt)}`);
+            } catch (err) {
+                show(out, escapeHtml(err.message || 'Request failed'), true);
             } finally {
-                captionResult.classList.remove('hidden');
-                captionBtn.textContent = 'Generate Caption';
                 captionBtn.disabled = false;
+                captionBtn.textContent = 'Generate caption';
             }
         });
 
         // ── Search ───────────────────────────────────────────────
-        const searchInput = document.getElementById('search-input');
-        const searchBtn = document.getElementById('search-btn');
-        const searchResults = document.getElementById('search-results');
-        const resultsList = document.getElementById('results-list');
+        const queryInput = $('query'), searchBtn = $('search-btn');
+
+        /** '../data/animals/cat/ab12.jpg' → '/animals/cat/ab12.jpg', the path the API serves. */
+        const toUrl = (path) => '/animals/' + path.split('data/animals/').pop();
+        const toLabel = (path) => path.split('/').slice(-2, -1)[0].replace(/_/g, ' ');
 
         async function runSearch() {
-            const query = searchInput.value.trim();
+            const query = queryInput.value.trim();
             if (!query) return;
 
-            searchBtn.textContent = 'Searching...';
+            const out = $('search-out'), list = $('results');
             searchBtn.disabled = true;
+            searchBtn.textContent = 'Searching…';
+            list.innerHTML = '';
+            const startedAt = performance.now();
 
             try {
                 const res = await fetch(`${API}/search`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query, top_k: 3 })
+                    body: JSON.stringify({ query, top_k: Number($('top-k').value) })
                 });
-                const data = await res.json();
+                if (!res.ok) throw new Error(await errorFrom(res));
+                const { results } = await res.json();
 
-                resultsList.innerHTML = data.results.map((r, i) => {
-                    const imgPath = r.path.replace('../data/animals/', '');
-                    const imgUrl = `http://localhost:8000/animals/${imgPath}`;
+                if (!results.length) {
+                    show(out, 'No matches.');
+                    return;
+                }
+
+                show(out, took(startedAt));
+                list.innerHTML = results.map((r) => {
+                    const name = escapeHtml(toLabel(r.path));
+                    // Cosine similarity of L2-normalised embeddings, so 0..1 maps straight to the bar.
+                    const pct = Math.max(0, Math.min(1, r.score)) * 100;
                     return `
-                    <div class="bg-gray-800 rounded-xl overflow-hidden flex items-center gap-4 p-3">
-                        <img src="${imgUrl}" class="w-20 h-20 object-cover rounded-lg shrink-0" alt="result ${i + 1}">
-                        <div class="min-w-0 flex-1">
-                            <p class="text-xs text-gray-500 font-mono truncate">${r.path}</p>
-                            <p class="text-indigo-400 font-mono text-sm mt-1">score: ${r.score}</p>
+                    <li>
+                        <img src="${toUrl(r.path)}" alt="${name}" loading="lazy">
+                        <div class="meta">
+                            <div class="label">${name}</div>
+                            <div class="score">similarity ${r.score.toFixed(4)}</div>
+                            <div class="track"><div class="fill" style="width:${pct}%"></div></div>
                         </div>
-                        <span class="text-gray-500 text-xs shrink-0">#${i + 1}</span>
-                    </div>`;
+                    </li>`;
                 }).join('');
-            } catch {
-                resultsList.innerHTML = '<p class="text-red-400 text-sm">Error: could not connect to API.</p>';
+            } catch (err) {
+                show(out, escapeHtml(err.message || 'Request failed'), true);
             } finally {
-                searchResults.classList.remove('hidden');
-                searchBtn.textContent = 'Search';
                 searchBtn.disabled = false;
+                searchBtn.textContent = 'Search';
             }
         }
 
         searchBtn.addEventListener('click', runSearch);
-        searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') runSearch(); });
+        queryInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') runSearch(); });
     </script>
-
 </body>
 
 </html>
