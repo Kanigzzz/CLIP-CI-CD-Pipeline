@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     environment:
       - HF_TOKEN=${HF_TOKEN}
-      - MODEL_REVISION=@{MODEL_REVISION}
+      - MODEL_REVISION=${MODEL_REVISION}
     volumes:
       - hf_cache:/app/.cache/huggingface
       - models_data:/app/models
@@ -22,6 +22,7 @@ services:
       retries: 3
     networks:
       - private_net
+      - egress_net
 
   frontend:
     build:
@@ -60,3 +61,5 @@ networks:
     driver: bridge
   private_net:
     internal: true
+  egress_net:
+    driver: bridge
