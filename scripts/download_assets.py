@@ -63,6 +63,7 @@ def download_blip():
     dest = ROOT / "models" / "blip"
     if dest.exists():
         print("BLIP model already")
+        return
 
     print("Downloading BLIP model...")
     snapshot_download(
