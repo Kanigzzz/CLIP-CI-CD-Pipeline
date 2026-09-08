@@ -57,8 +57,6 @@ idna==3.4
     # via
     #   anyio
     #   httpx
-iniconfig==2.3.0
-    # via pytest
 jinja2==3.1.6
     # via torch
 markdown-it-py==4.2.0
@@ -91,14 +89,11 @@ packaging==24.1
     #   faiss-cpu
     #   huggingface-hub
     #   onnxruntime
-    #   pytest
     #   transformers
 pillow==12.3.0
     # via
     #   -r requirements.txt
     #   torchvision
-pluggy==1.6.0
-    # via pytest
 protobuf==7.36.1
     # via
     #   onnx
@@ -110,13 +105,11 @@ pydantic==2.13.5
 pydantic-core==2.46.5
     # via pydantic
 pygments==2.21.0
-    # via
-    #   pytest
-    #   rich
-pytest==9.1.1
-    # via -r requirements.txt
+    # via rich
 python-dotenv==1.2.3
-    # via uvicorn
+    # via
+    #   -r requirements.txt
+    #   uvicorn
 python-multipart==0.0.32
     # via -r requirements.txt
 pyyaml==6.0.3
