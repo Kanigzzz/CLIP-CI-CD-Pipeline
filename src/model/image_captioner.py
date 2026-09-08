@@ -24,9 +24,12 @@ class ImageCaptioner:
     def __init__(self):
         self.device = _get_device()
 
-        self.processor = BlipProcessor.from_pretrained(cfg['data']['model'])
+        _ROOT = Path(__file__).resolve().parent.parent.parent
+        local_model_path = str(_ROOT / "models" / "blip")
+
+        self.processor = BlipProcessor.from_pretrained(local_model_path)
         self.model = BlipForConditionalGeneration.from_pretrained(
-            cfg['data']['model'])
+            local_model_path)
         self.model.to(self.device)
         self.model.eval()
 
