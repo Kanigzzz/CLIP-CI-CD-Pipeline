@@ -9,6 +9,7 @@ from src.api.main import app
 
 class FakeCaptioner():
     def generate_caption(self, image_bytes: bytes) -> str:
+        Image.open(io.BytesIO(image_bytes)).verify()
         return "test text"
 
 
@@ -19,6 +20,29 @@ class FakeSearcher():
 
     def search(self, query: str, top_k: int = 3):
         return self._result[:top_k]
+
+
+class ImageFactoryClass:
+    def create(self, type: str = "valid"):
+
+        if type == "valid":
+            img = Image.new("RGB", (64, 64), color="blue")
+            img_byte = io.BytesIO()
+            img.save(img_byte, format="JPEG")
+            img_byte.seek(0)
+            return ("test.jpg", img_byte, "image/jpg")
+
+        if type == "corrupted":
+            return ("corrupted.jpg", io.BytesIO(b"This is not and proper image"), "image/jpg")
+
+        if type == "too_large":
+            huge_data = b"0" * (11 * 1024 * 1024)
+            return ("huge.jpg", io.BytesIO(huge_data), "image/jpg")
+
+
+@pytest.fixture()
+def image_factory():
+    return ImageFactoryClass()
 
 
 @pytest.fixture(scope="module")
@@ -33,12 +57,11 @@ def client():
     app.dependency_overrides.clear()
 
 
-def test_health_endpoint(client):
-    response = client.get("/health")
+def test_live_endpoint(client):
+    response = client.get("/live")
     assert response.status_code == 200
     data = response.json()
-    assert data["status"] == "healthy"
-    assert data["service"] == "clip-api"
+    assert data["status"] == "alive"
 
 
 @pytest.mark.parametrize("query, top_k", [
@@ -116,3 +139,42 @@ def test_caption_invalid_image(client):
         files={"image": ("test_plik.txt", b"Tekst", "text/plain")}
     )
     assert response.status_code == 400
+
+
+def test_caption_too_large(client, image_factory):
+    response = client.post(
+        "/api/v1/caption",
+        files={"image": image_factory.create("too_large")}
+    )
+    assert response.status_code == 413
+
+
+def test_caption_corrupted_image(client, image_factory):
+    response = client.post(
+        "/api/v1/caption",
+        files={"image": image_factory.create("corrupted")}
+    )
+    assert response.status_code == 400
+
+
+def test_caption_missing_file(client):
+    response = client.post("/api/v1/caption")
+    assert response.status_code == 422
+
+
+def test_caption_internal_error(client, image_factory):
+    class CorruptedCaptioner:
+        def generate_caption(self, image_bytes: bytes) -> str:
+            raise Exception("Internal model error")
+
+    from src.api.routers.caption import get_captioner
+    app.dependency_overrides[get_captioner] = lambda: CorruptedCaptioner()
+
+    response = client.post(
+        "/api/v1/caption",
+        files={"image": image_factory.create("valid")}
+    )
+
+    assert response.status_code == 500
+
+    app.dependency_overrides[get_captioner] = lambda: FakeCaptioner()
