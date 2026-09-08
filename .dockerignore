@@ -12,7 +12,8 @@ __pycache__/
 .ruff_cache/
 .DS_Store
 **/.DS_Store
-notebooks/
+**/notebooks/
+**/.DS_Store
 data/animals/
 data/database/
 models/*.pth
