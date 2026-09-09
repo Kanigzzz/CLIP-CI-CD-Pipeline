@@ -11,7 +11,6 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .DS_Store
-**/.DS_Store
 **/notebooks/
 **/.DS_Store
 data/animals/

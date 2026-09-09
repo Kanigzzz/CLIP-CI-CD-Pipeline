@@ -10,7 +10,7 @@ load_dotenv(ROOT / ".env")
 
 MODEL_REPO = "Kamil123456789/clip-animals"
 MODEL_REVISION = os.getenv(
-    "MODEL_REVISION", "e3732e377768e0383caa96e3a1f43963bee9e79e")
+    "MODEL_REVISION") or "e3732e377768e0383caa96e3a1f43963bee9e79e"
 DATA_REPO = "Kamil123456789/clip-animals-data"
 DATA_REVISION = "061f7a988f864a5fb786b90acf1ab07136c3d5f7"
 
@@ -61,14 +61,15 @@ def download_dataset():
 
 def download_blip():
     dest = ROOT / "models" / "blip"
-    if dest.exists():
+    if (dest / "config.json").exists() and (dest / "pytorch_model.bin").exists():
         print("BLIP model already")
         return
 
     print("Downloading BLIP model...")
     snapshot_download(
         repo_id="Salesforce/blip-image-captioning-base",
-        local_dir=str(dest)
+        local_dir=str(dest),
+        ignore_patterns=["tf_model.h5"]
     )
 
 
