@@ -1,5 +1,8 @@
 # CLIP Animal Search
 
+![CI](https://github.com/Kanigzzz/CLIP-CI-CD-Pipeline/actions/workflows/ci.yml/badge.svg)
+![CD](https://github.com/Kanigzzz/CLIP-CI-CD-Pipeline/actions/workflows/cd.yml/badge.svg)
+
 > Wyszukiwanie zdjęć zapytaniem tekstowym oraz automatyczne generowanie opisów -
 > Od wytrenowanego modelu do skonteneryzowanej aplikacji.
 
@@ -22,6 +25,34 @@ docker compose up --build
 
 Aplikacja: <http://localhost>
 API: <http://localhost:8000/docs>
+
+## Stack
+
+| Warstwa | Technologia |
+|---|---|
+| API | FastAPI + Python 3.12 |
+| ML inference | PyTorch, ONNX Runtime, FAISS |
+| Konteneryzacja | Docker, Docker Compose, Nginx |
+| CI | GitHub Actions, pytest, uv |
+| CD | GitHub Container Registry (GHCR) |
+| Wersjonowanie modeli | Hugging Face Hub |
+
+## Architektura
+
+```mermaid
+graph LR
+    A[git push] --> B[CI: testy jednostkowe]
+    B --> C{OK?}
+    C -- tak --> D[CD: docker build]
+    C -- nie --> E[stop]
+    D --> F[push → ghcr.io]
+
+    G[docker compose up] --> H[Nginx :80]
+    H --> I[Frontend]
+    H --> J[FastAPI :8000]
+    J --> K[/search → CLIP + FAISS + ONNX]
+    J --> L[/caption → BLIP + PyTorch]
+```
 
 ## Dziennik decyzji 
 
