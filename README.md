@@ -45,13 +45,13 @@ graph LR
     B --> C{OK?}
     C -- tak --> D[CD: docker build]
     C -- nie --> E[stop]
-    D --> F[push → ghcr.io]
+    D --> F[push do ghcr.io]
 
     G[docker compose up] --> H[Nginx :80]
     H --> I[Frontend]
     H --> J[FastAPI :8000]
-    J --> K[/search → CLIP + FAISS + ONNX]
-    J --> L[/caption → BLIP + PyTorch]
+    J --> K["#quot;/search#quot; — CLIP, FAISS, ONNX"]   
+    J --> L["#quot;/caption#quot; — BLIP, PyTorch"]  
 ```
 
 ## Dziennik decyzji 
